@@ -25,4 +25,4 @@ jobs:
           GH_TOKEN: ${{ secrets.ADD_TO_PROJECT }}
           GH_REPO: ${{ github.repository }}
           NUMBER: ${{ github.event.issue.number }}
-          LABELS: BusinessSolutions
+          LABELS: Innovate
