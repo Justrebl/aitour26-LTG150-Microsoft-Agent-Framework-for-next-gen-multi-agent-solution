@@ -15,23 +15,17 @@ Prior to delivering the workshop please:
 |-------------------|----------------------------------|-------------------|
 | Workshop Slide Deck      |  [Presentation](https://aka.ms/AAxryuq)  | Presentation slides for this workshop with presenter notes and embedded demo video |
 | Session Delivery Deck     |  [Deck](https://aka.ms/AAxryuq) | The session delivery slides |
-| More Files     |  [Some More Files](https://aka.ms/) | More File Descriptions |
+| Demo walkthrough   |  [Demo video](https://aka.ms/) | Coming soon |
 
 
 ## 🚀Get Started
 
-The workshop is divided into multiple sections including 16 slides, 1 demo and 2 hands on labs.
+The workshop is divided into multiple sections including 12 slides and 1 demo.
 
 ### 🕐Timing
 
 | Time        | Description 
 --------------|-------------
-0:00 - 5:00   | Intro and overview
-5:00 - 70:00  | Session Steps
-70:00 - 75:00 | Wrap up and Q&A
-
-### 🏋️Preparation
-Preparation Notes go here
-
-### 🖥️Demos
-Description of demos goes here
+0:00 - 3:00   | Intro and Microsoft Agent Framework overview
+4:00 - 14:00  | Demo
+14:00 - 15:00 | Wrap up

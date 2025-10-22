@@ -1,0 +1,50 @@
+digraph Workflow {
+  rankdir=TD;
+  node [shape=box, style=filled, fillcolor=lightblue];
+  edge [color=black, arrowhead=vee];
+
+  "clothing_concept_parser" [fillcolor=lightgreen, label="clothing_concept_parser\n(Start)"];
+  "concept_input_adapter" [label="concept_input_adapter"];
+  "extract_analysis_prompt_for_concurrent" [label="extract_analysis_prompt_for_concurrent"];
+  "concurrent_fashion_analysis" [label="concurrent_fashion_analysis"];
+  "concurrent_fashion_analysis_logger" [label="concurrent_fashion_analysis_logger"];
+  "concept_report_writer_agent" [label="concept_report_writer_agent"];
+  "convert_report_to_approval_request" [label="convert_report_to_approval_request"];
+  "zava_approval_manager" [label="zava_approval_manager"];
+  "zava_human_approver" [label="zava_human_approver"];
+  "save_approved_concept_report" [label="save_approved_concept_report"];
+  "draft_concept_rejection_email" [label="draft_concept_rejection_email"];
+  "approved_concept_handler" [label="approved_concept_handler"];
+  "rejected_concept_handler" [label="rejected_concept_handler"];
+  "clothing_concept_parser" -> "concept_input_adapter";
+  "concept_input_adapter" -> "extract_analysis_prompt_for_concurrent";
+  "extract_analysis_prompt_for_concurrent" -> "concurrent_fashion_analysis";
+  "concurrent_fashion_analysis" -> "concurrent_fashion_analysis_logger";
+  "concurrent_fashion_analysis_logger" -> "concept_report_writer_agent";
+  "concept_report_writer_agent" -> "convert_report_to_approval_request";
+  "convert_report_to_approval_request" -> "zava_approval_manager";
+  "zava_approval_manager" -> "zava_human_approver";
+  "zava_human_approver" -> "zava_approval_manager";
+  "zava_approval_manager" -> "save_approved_concept_report" [style=dashed, label="conditional"];
+  "zava_approval_manager" -> "draft_concept_rejection_email" [style=dashed, label="conditional"];
+  "save_approved_concept_report" -> "approved_concept_handler";
+  "draft_concept_rejection_email" -> "rejected_concept_handler";
+  subgraph cluster_5c44ab56 {
+    label="sub-workflow: concurrent_fashion_analysis";
+    style=dashed;
+    "concurrent_fashion_analysis/dispatcher" [fillcolor=lightgreen, label="dispatcher\n(Start)"];
+    "concurrent_fashion_analysis/fashion_market_research_agent" [label="fashion_market_research_agent"];
+    "concurrent_fashion_analysis/fashion_design_evaluation_agent" [label="fashion_design_evaluation_agent"];
+    "concurrent_fashion_analysis/production_feasibility_agent" [label="production_feasibility_agent"];
+    "concurrent_fashion_analysis/aggregator" [label="aggregator"];
+
+    "concurrent_fashion_analysis/fan_in::aggregator::b1158146" [shape=ellipse, fillcolor=lightgoldenrod, label="fan-in"];
+    "concurrent_fashion_analysis/fashion_design_evaluation_agent" -> "concurrent_fashion_analysis/fan_in::aggregator::b1158146";
+    "concurrent_fashion_analysis/fashion_market_research_agent" -> "concurrent_fashion_analysis/fan_in::aggregator::b1158146";
+    "concurrent_fashion_analysis/production_feasibility_agent" -> "concurrent_fashion_analysis/fan_in::aggregator::b1158146";
+    "concurrent_fashion_analysis/fan_in::aggregator::b1158146" -> "concurrent_fashion_analysis/aggregator";
+    "concurrent_fashion_analysis/dispatcher" -> "concurrent_fashion_analysis/fashion_market_research_agent";
+    "concurrent_fashion_analysis/dispatcher" -> "concurrent_fashion_analysis/fashion_design_evaluation_agent";
+    "concurrent_fashion_analysis/dispatcher" -> "concurrent_fashion_analysis/production_feasibility_agent";
+  }
+}
