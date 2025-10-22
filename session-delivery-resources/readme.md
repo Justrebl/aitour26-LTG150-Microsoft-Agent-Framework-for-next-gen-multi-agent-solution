@@ -21,6 +21,7 @@ Prior to delivering the workshop please:
 ## 🚀Get Started
 
 The workshop is divided into multiple sections including 12 slides and 1 demo.
+Demo code, descriptions and steps to replicate are detailed in the [src folder](../src/readme.md) of this repo.
 
 ### 🕐Timing
 
