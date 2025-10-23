@@ -15,7 +15,7 @@ Prior to delivering the workshop please:
 |-------------------|----------------------------------|-------------------|
 | Workshop Slide Deck      |  [Presentation](https://aka.ms/AAxryuq)  | Presentation slides for this workshop with presenter notes and embedded demo video |
 | Session Delivery Deck     |  [Deck](https://aka.ms/AAxryuq) | The session delivery slides |
-| Demo walkthrough   |  [Demo video](https://aka.ms/) | Coming soon |
+| Demo walkthrough   |  [Demo video](https://youtu.be/LwKAyXmAhqI) | Demo walkthrough on YouTube |
 
 
 ## 🚀Get Started
