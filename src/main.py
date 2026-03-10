@@ -1,50 +1,59 @@
 """
 Main entry point for Zava Clothing Concept Analysis System.
 
-Starts the web-based user interface for analyzing clothing concepts.
+Usage:
+    python main.py          Launch the custom FastAPI UI on port 8000
+    python main.py --devui  Launch DevUI (Agent Framework sample app) on port 8080
 """
 
+import asyncio
 import sys
 
-
-def main():
-    """
-    Main entry point - starts the web UI.
-    """
-    print("Starting Zava Clothing Concept Analysis System")
-    start_web_ui()
+from dotenv import load_dotenv
 
 
 def start_web_ui(port: int = 8000):
-    """
-    Start the FastAPI web interface.
+    """Start the existing FastAPI-based web interface."""
+    import uvicorn
+    from backend import app
 
-    Args:
-        port: Port number to run the server on
-    """
+    print("Starting Zava Clothing Concept Analysis Web Interface...")
+    print(f"Access the interface at: http://localhost:{port}")
+    print("Real-time updates available via WebSocket")
+    print("Press Ctrl+C to stop the server")
+
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
+
+def start_devui(port: int = 8080):
+    """Start DevUI — the Agent Framework sample app."""
     try:
-        import uvicorn
-        from backend import app
-
-        print("Starting Zava Clothing Concept Analysis Web Interface...")
-        print(f"Access the interface at: http://localhost:{port}")
-        print("Real-time updates available via WebSocket")
-        print("Press Ctrl+C to stop the server")
-
-        uvicorn.run(
-            app,
-            host="0.0.0.0",
-            port=port,
-            log_level="info"
-        )
-
+        from agent_framework.devui import serve
     except ImportError:
-        print("ERROR: FastAPI dependencies not available.")
-        print("   Install with: pip install fastapi uvicorn[standard]")
+        print("ERROR: agent-framework-devui is not installed.")
+        print("   Install with: uv sync")
         sys.exit(1)
-    except Exception as e:
-        print(f"ERROR: Failed to start web interface: {e}")
-        sys.exit(1)
+
+    from core.build import build_workflow, create_chat_clients
+
+    print("Starting Zava Clothing Concept Analysis System (DevUI)")
+    print("Initializing Azure AI chat clients...")
+    chat_clients = create_chat_clients()
+
+    print("Building Zava concept evaluation workflow (auto-approve enabled)...")
+    workflow = asyncio.run(build_workflow(chat_clients, auto_approve=True))
+
+    print(f"Launching DevUI at http://localhost:{port} ...")
+    serve(entities=[workflow], auto_open=True, port=port, tracing_enabled=True)
+
+
+def main():
+    load_dotenv()
+
+    if "--devui" in sys.argv:
+        start_devui()
+    else:
+        start_web_ui()
 
 
 if __name__ == "__main__":

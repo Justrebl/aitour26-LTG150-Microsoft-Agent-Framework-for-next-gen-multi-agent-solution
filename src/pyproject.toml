@@ -8,19 +8,22 @@ dependencies = [
     "agent-framework",
     "agent-framework-core[viz]",
     "agent-framework-azure-ai",
+    # DevUI - Sample app for running agents and workflows
+    "agent-framework-devui",
     # PowerPoint processing
     "python-pptx>=0.6.23",
     # Environment and configuration
     "python-dotenv>=1.0.0",
     # Azure authentication
     "azure-identity>=1.15.0",
-    # Telemetry and observability
-    "opentelemetry-sdk>=1.37.0",
     # FastAPI web framework for UI
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
     "python-multipart>=0.0.6",
     "aiofiles>=23.2.1",
+    # Telemetry and observability
+    "opentelemetry-sdk>=1.37.0",
+    "azure-monitor-opentelemetry-exporter>=1.0.0b31",
 ]
 
 [tool.uv]
