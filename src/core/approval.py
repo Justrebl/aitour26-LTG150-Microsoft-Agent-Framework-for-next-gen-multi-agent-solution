@@ -323,7 +323,7 @@ def create_auto_approver():
     async def auto_approve_executor(request: ClothingConceptApprovalRequest, ctx: WorkflowContext) -> None:
         print("AUTO-APPROVE: Automatically approving concept (DevUI mode)")
         import uuid
-        response = RequestResponse(data="yes", original_request=request, request_id=str(uuid.uuid4()))
+        response = RequestResponse(data="no", original_request=request, request_id=str(uuid.uuid4()))
         await ctx.send_message(response)
 
     return auto_approve_executor
