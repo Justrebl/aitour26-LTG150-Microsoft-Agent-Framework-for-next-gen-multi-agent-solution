@@ -61,7 +61,7 @@ def create_chat_clients() -> List[Any]:
         AzureAIAgentClient(
             project_endpoint=project_endpoint,
             model_deployment_name=model_deployment_name,
-            async_credential=credential,
+            credential=credential,
         )
         for _ in range(3)
     ]
@@ -88,8 +88,7 @@ async def build_workflow(chat_clients: List[Any], auto_approve: bool = False):
     approval_manager = ZavaConceptApprovalManager()
 
     workflow = (
-        WorkflowBuilder()
-        .set_start_executor(process_clothing_concept_pitch)
+        WorkflowBuilder(start_executor=process_clothing_concept_pitch)
         .add_edge(process_clothing_concept_pitch, adapt_concept_for_analysis)
         .add_edge(adapt_concept_for_analysis, extract_analysis_prompt)
         .add_edge(extract_analysis_prompt, concurrent_analysis_subworkflow)

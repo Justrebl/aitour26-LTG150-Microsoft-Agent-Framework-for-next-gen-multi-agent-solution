@@ -6,7 +6,6 @@ requires-python = ">=3.10"
 dependencies = [
     # Agent Framework - from PyPI
     "agent-framework",
-    "agent-framework-core[viz]",
     "agent-framework-azure-ai",
     # DevUI - Sample app for running agents and workflows
     "agent-framework-devui",
@@ -24,6 +23,7 @@ dependencies = [
     # Telemetry and observability
     "opentelemetry-sdk>=1.37.0",
     "azure-monitor-opentelemetry-exporter>=1.0.0b31",
+    "agent-framework-core[viz]>=1.0.0rc3",
 ]
 
 [tool.uv]

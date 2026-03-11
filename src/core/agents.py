@@ -5,13 +5,13 @@ This module contains agent creation functions for various fashion analysis
 tasks including market research, design evaluation, and production assessment.
 """
 
-from typing import List, Any
+from typing import List, Any, Never
 import asyncio
 from agent_framework import (
-    ChatMessage,
+    Message,
     Role,
     WorkflowExecutor,
-    ConcurrentBuilder,
+    WorkflowBuilder,
     AgentExecutor,
     AgentExecutorResponse,
     WorkflowContext,
@@ -56,10 +56,9 @@ def create_fashion_research_agent(chat_clients_list: List[Any]) -> AgentExecutor
         raise ValueError("No chat clients available for agent creation. Please configure Foundry endpoint.")
 
     chat_client = chat_clients_list[0]
-    research_agent = chat_client.create_agent(
+    research_agent = chat_client.as_agent(
         instructions=system_prompt,
         name="Fashion Market Research Agent",
-        model_name="gpt-4o"  # or use a default model
     )
     # Wrap in AgentExecutor for workflow compatibility
     return AgentExecutor(research_agent, id="fashion_market_research_agent")
@@ -100,10 +99,9 @@ def create_design_evaluation_agent(chat_clients_list: List[Any]) -> AgentExecuto
         raise ValueError("No chat clients available for agent creation. Please configure Foundry endpoint.")
 
     chat_client = chat_clients_list[1] if len(chat_clients_list) > 1 else chat_clients_list[0]
-    design_agent = chat_client.create_agent(
+    design_agent = chat_client.as_agent(
         instructions=system_prompt,
         name="Fashion Design Evaluation Agent",
-        model_name="gpt-4o"
     )
     return AgentExecutor(design_agent, id="fashion_design_evaluation_agent")
 
@@ -143,10 +141,9 @@ def create_production_feasibility_agent(chat_clients_list: List[Any]) -> AgentEx
         raise ValueError("No chat clients available for agent creation. Please configure Foundry endpoint.")
 
     chat_client = chat_clients_list[2] if len(chat_clients_list) > 2 else chat_clients_list[0]
-    production_agent = chat_client.create_agent(
+    production_agent = chat_client.as_agent(
         instructions=system_prompt,
         name="Production Feasibility Agent",
-        model_name="gpt-4o"
     )
     return AgentExecutor(production_agent, id="production_feasibility_agent")
 
@@ -185,10 +182,9 @@ def create_comprehensive_analysis_agent(chat_clients_list: List[Any]) -> AgentEx
         raise ValueError("No chat clients available for agent creation. Please configure Foundry endpoint.")
 
     chat_client = chat_clients_list[-1]  # Use the last client in the list
-    comprehensive_agent = chat_client.create_agent(
+    comprehensive_agent = chat_client.as_agent(
         instructions=system_prompt,
         name="Comprehensive Fashion Analysis Agent",
-        model_name="gpt-4o"
     )
     return AgentExecutor(comprehensive_agent, id="comprehensive_fashion_analysis_agent")
 
@@ -197,14 +193,15 @@ async def create_concurrent_fashion_analysis_workflow(chat_clients_list: List[An
     """
     Create a concurrent workflow that runs multiple fashion analysis agents in parallel.
 
-    Uses ConcurrentBuilder to create a proper concurrent subworkflow that aggregates
-    results from market research, design evaluation, and production assessment agents.
+    Uses WorkflowBuilder with fan-out/fan-in edges to create a concurrent subworkflow
+    that aggregates results from market research, design evaluation, and production
+    assessment agents.
 
     Args:
         chat_clients_list: List of chat clients for agent communication
 
     Returns:
-        Concurrent workflow built with ConcurrentBuilder
+        Concurrent workflow built with WorkflowBuilder fan-out/fan-in
     """
     print("Creating concurrent fashion analysis workflow...")
 
@@ -217,8 +214,37 @@ async def create_concurrent_fashion_analysis_workflow(chat_clients_list: List[An
 
     production_agent = create_production_feasibility_agent(chat_clients_list)
 
-    # Build concurrent workflow that returns aggregated analysis
-    workflow = ConcurrentBuilder().participants([market_agent, design_agent, production_agent]).build()
+    @executor(id="fashion_analysis_distributor")
+    async def distribute_prompt(prompt: str, ctx: WorkflowContext[str]) -> None:
+        """Distribute the analysis prompt to all concurrent agents."""
+        await ctx.send_message(prompt)
+
+    @executor(id="fashion_analysis_collector")
+    async def collect_results(results: List[Any], ctx: WorkflowContext[Never, str]) -> None:
+        """Collect and aggregate results from concurrent fashion analysis agents."""
+        parts = []
+        for result in results:
+            if hasattr(result, 'agent_response') and hasattr(result.agent_response, 'messages'):
+                for msg in result.agent_response.messages:
+                    if hasattr(msg, 'contents') and msg.contents:
+                        for content in msg.contents:
+                            if hasattr(content, 'text') and content.text:
+                                parts.append(content.text)
+            else:
+                parts.append(str(result))
+        aggregated = "\n\n".join(parts) if parts else str(results)
+        await ctx.yield_output(aggregated)
+
+    # Build concurrent workflow: distributor fans out to all 3 agents, then fan-in to collector
+    # output_executors limits workflow output to the collector only, preventing
+    # each AgentExecutor's automatic yield_output from propagating upstream.
+    agents = [market_agent, design_agent, production_agent]
+    workflow = (
+        WorkflowBuilder(start_executor=distribute_prompt, output_executors=[collect_results])
+        .add_fan_out_edges(distribute_prompt, agents)
+        .add_fan_in_edges(agents, collect_results)
+        .build()
+    )
 
     print("Created concurrent fashion analysis workflow with participants:")
     print("   • Fashion Market Research Agent")
@@ -265,9 +291,8 @@ def create_concept_report_writer_agent(chat_clients_list: List[Any]) -> AgentExe
         raise ValueError("No chat clients available for agent creation. Please configure Foundry endpoint.")
 
     chat_client = chat_clients_list[0]
-    report_agent = chat_client.create_agent(
+    report_agent = chat_client.as_agent(
         instructions=system_prompt,
         name="Concept Report Writer Agent",
-        model_name="gpt-4o"
     )
     return AgentExecutor(report_agent, id="concept_report_writer_agent")

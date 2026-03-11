@@ -98,8 +98,21 @@ async def extract_analysis_prompt(data_package_json: str, ctx: WorkflowContext[s
 
     try:
         data_package = json.loads(data_package_json)
+
+        # Propagate upstream errors without crashing
+        if "error" in data_package:
+            print(f"INTERMEDIATE: Received error from previous step: {data_package['error']}")
+            await ctx.send_message(data_package_json)
+            return
+
         workflow_id = data_package.get("workflow_id")
         analysis_prompt = data_package.get("analysis_prompt")
+
+        if not analysis_prompt:
+            error_msg = "No analysis_prompt found in data package"
+            print(f"INTERMEDIATE ERROR: {error_msg}")
+            await ctx.send_message(json.dumps({"error": error_msg}))
+            return
 
         print(f"INTERMEDIATE: Extracted workflow_id: {workflow_id}")
         print(f"INTERMEDIATE: Analysis prompt length: {len(analysis_prompt)} characters")

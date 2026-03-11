@@ -40,11 +40,11 @@ def start_devui(port: int = 8080):
     print("Initializing Azure AI chat clients...")
     chat_clients = create_chat_clients()
 
-    print("Building Zava concept evaluation workflow (auto-approve enabled)...")
-    workflow = asyncio.run(build_workflow(chat_clients, auto_approve=True))
+    print("Building Zava concept evaluation workflow...")
+    workflow = asyncio.run(build_workflow(chat_clients, auto_approve=False))
 
     print(f"Launching DevUI at http://localhost:{port} ...")
-    serve(entities=[workflow], auto_open=True, port=port, tracing_enabled=True)
+    serve(entities=[workflow], auto_open=True, port=port, instrumentation_enabled=True)
 
 
 def main():

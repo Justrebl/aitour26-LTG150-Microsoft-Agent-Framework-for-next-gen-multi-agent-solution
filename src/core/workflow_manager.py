@@ -14,17 +14,14 @@ from typing import Any, Dict, Optional, List, Callable
 from dotenv import load_dotenv
 
 from agent_framework import (
-    ChatMessage,
+    Message,
     Executor,
     Role,
     WorkflowBuilder,
-    WorkflowOutputEvent,
-    WorkflowStatusEvent,
+    WorkflowEvent,
     WorkflowRunState,
     WorkflowContext,
     WorkflowExecutor,
-    RequestInfoEvent,
-    RequestResponse
 )
 
 # Import our modular components
@@ -150,9 +147,9 @@ class ZavaConceptWorkflowManager:
                         # Create fresh workflow stream for retry
                         if hasattr(self, '_last_stream_params'):
                             if self._last_stream_params.get('pending_requests'):
-                                workflow_stream = self.workflow.send_responses_streaming(self._last_stream_params['pending_requests'])
+                                workflow_stream = self.workflow.run(stream=True, responses=self._last_stream_params['pending_requests'])
                             else:
-                                workflow_stream = self.workflow.run_stream(self._last_stream_params['concept_file_path'])
+                                workflow_stream = self.workflow.run(self._last_stream_params['concept_file_path'], stream=True)
                         continue
                     else:
                         await self._add_output("System", f"Rate limit exceeded after {max_retries} attempts", "error")
@@ -200,8 +197,7 @@ class ZavaConceptWorkflowManager:
 
             # Build the complete workflow graph
             await self._update_progress("Assembling workflow components...", 30)
-            self.workflow = WorkflowBuilder()\
-                .set_start_executor(process_clothing_concept_pitch)\
+            self.workflow = WorkflowBuilder(start_executor=process_clothing_concept_pitch)\
                 .add_edge(process_clothing_concept_pitch, adapt_concept_for_analysis)\
                 .add_edge(adapt_concept_for_analysis, extract_analysis_prompt)\
                 .add_edge(extract_analysis_prompt, concurrent_analysis_subworkflow)\
@@ -305,10 +301,10 @@ class ZavaConceptWorkflowManager:
             while not workflow_idle:
                 # Run workflow iteration
                 if pending_requests:
-                    stream = self.workflow.send_responses_streaming(pending_requests)
+                    stream = self.workflow.run(stream=True, responses=pending_requests)
                     self._last_stream_params = {'pending_requests': pending_requests}
                 else:
-                    stream = self.workflow.run_stream(concept_file_path)
+                    stream = self.workflow.run(concept_file_path, stream=True)
                     self._last_stream_params = {'concept_file_path': concept_file_path}
 
                 # Process all events from this iteration with retry logic
@@ -332,7 +328,7 @@ class ZavaConceptWorkflowManager:
                     # Track progress based on event information
                     await self._track_workflow_progress(event)
 
-                    if isinstance(event, WorkflowOutputEvent):
+                    if isinstance(event, WorkflowEvent) and event.type == "output":
                         workflow_output = event.data
                         await self._update_progress("Save Results", 100, {
                             "current_step": "Save Results",
@@ -348,13 +344,13 @@ class ZavaConceptWorkflowManager:
                         })
                         await self._add_output("Workflow", f"Concept analysis completed: {event.data}", "success")
 
-                    if isinstance(event, WorkflowStatusEvent):
+                    if isinstance(event, WorkflowEvent) and event.type == "status":
                         if event.state in [WorkflowRunState.IDLE, WorkflowRunState.FAILED]:
                             workflow_idle = True
                             if event.state == WorkflowRunState.FAILED:
                                 await self._add_output("Workflow", "Workflow execution failed", "error")
 
-                    elif isinstance(event, RequestInfoEvent):
+                    elif isinstance(event, WorkflowEvent) and event.type == "request_info":
                         # Human approval required
                         print("=" * 60)
                         print("WORKFLOW: HUMAN APPROVAL REQUEST DETECTED!")
@@ -482,17 +478,17 @@ class ZavaConceptWorkflowManager:
             client1 = AzureAIAgentClient(
                 project_endpoint=project_endpoint,
                 model_deployment_name=model_deployment_name,
-                async_credential=credential
+                credential=credential
             )
             client2 = AzureAIAgentClient(
                 project_endpoint=project_endpoint,
                 model_deployment_name=model_deployment_name,
-                async_credential=credential
+                credential=credential
             )
             client3 = AzureAIAgentClient(
                 project_endpoint=project_endpoint,
                 model_deployment_name=model_deployment_name,
-                async_credential=credential
+                credential=credential
             )
 
             # Use separate clients for each agent to ensure fresh instructions
