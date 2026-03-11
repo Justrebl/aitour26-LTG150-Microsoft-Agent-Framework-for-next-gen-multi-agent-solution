@@ -310,6 +310,25 @@ def concept_rejection_condition(decision: Any) -> bool:
     return True
 
 
+def create_auto_approver():
+    """Create an executor that auto-approves concepts (for DevUI mode).
+
+    DevUI does not support RequestInfoExecutor (human-in-the-loop) for workflows.
+    This executor automatically sends a 'yes' response so the workflow completes
+    end-to-end in DevUI for demonstration and tracing purposes.
+    """
+    from agent_framework import executor
+
+    @executor(id="zava_human_approver")
+    async def auto_approve_executor(request: ClothingConceptApprovalRequest, ctx: WorkflowContext) -> None:
+        print("AUTO-APPROVE: Automatically approving concept (DevUI mode)")
+        import uuid
+        response = RequestResponse(data="yes", original_request=request, request_id=str(uuid.uuid4()))
+        await ctx.send_message(response)
+
+    return auto_approve_executor
+
+
 def create_zava_human_approver() -> RequestInfoExecutor:
     """
     Create a human approver executor for Zava clothing concept decisions.
